@@ -1,38 +1,26 @@
 pipeline {
-    agent any  // Runs on any available agent
+    agent any
+
+    tools {
+        maven 'Maven'  // Ensure "Maven" is installed and configured in Jenkins
+    }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/YourUsername/YourRepo.git' // Update with your repo URL
+                git branch: 'main', url: 'https://github.com/SamarthGaikwad7/WebAppForJenkinsForOnline.git'
             }
         }
 
-        stage('Build') {
+        stage('Build with Maven') {
             steps {
-                script {
-                    def mvnHome = tool name: 'Maven', type: 'maven'
-                    env.PATH = "${mvnHome}/bin:${env.PATH}"
-                }
-                sh 'mvn clean package'  // Build the project
+                sh 'mvn clean package'
             }
         }
 
-        stage('Test') {
+        stage('Deploy to Tomcat') {
             steps {
-                sh 'mvn test'  // Run tests
-            }
-        }
-
-        stage('Archive Artifact') {
-            steps {
-                archiveArtifacts artifacts: 'target/*.war', fingerprint: true  // Store the built WAR file
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deploying application...'  // Deployment steps go here
+                deploy adapters: [tomcat9(credentialsId: 'tomcat-cred', path: '', url: 'http://localhost:8080/')], war: '**/target/*.war'
             }
         }
     }
